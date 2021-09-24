@@ -1,5 +1,5 @@
 import React from "react";
-import { Grid} from "semantic-ui-react";
+import { Grid } from "semantic-ui-react";
 import { Activity } from "../../../app/models/activity";
 import ActivityDetails from "../Details/ActivityDetails";
 import ActivityForm from "../form/ActivityForm";
@@ -13,27 +13,39 @@ interface Props {
     editMode: boolean;
     openForm: (id: string) => void;
     closeForm: () => void
-    createOrEdit: (activity:Activity) => void;
-    deleteActivity:(id:string) => void;
+    createOrEdit: (activity: Activity) => void;
+    deleteActivity: (id: string) => void;
+    submitting: boolean;
 }
 
 
 export default function ActivityDashboard({ activities, selectedActivity, deleteActivity,
-    selectActivity, cancelSelectActivity, editMode, openForm, closeForm,createOrEdit }: Props) {
+    selectActivity, cancelSelectActivity, editMode, openForm, closeForm, createOrEdit, submitting }: Props) {
     return (
         <Grid>
             <Grid.Column width='10'>
-                <ActivityList deleteActivity={deleteActivity} activities={activities} selectActivity={selectActivity}/>
+                <ActivityList
+                deleteActivity={deleteActivity}
+                activities={activities}
+                selectActivity={selectActivity} 
+                submitting={submitting}
+                />
+
             </Grid.Column>
             <Grid.Column width='6'>
-                {selectedActivity && !editMode && 
-                    <ActivityDetails 
-                        activity={selectedActivity} 
-                        cancelSelectActivity={cancelSelectActivity} 
+                {selectedActivity && !editMode &&
+                    <ActivityDetails
+                        activity={selectedActivity}
+                        cancelSelectActivity={cancelSelectActivity}
                         openForm={openForm}
                     />}
                 {editMode &&
-                <ActivityForm closeForm={closeForm} selectedActivity={selectedActivity} createOrEdit={createOrEdit} />}
+                    <ActivityForm
+                        closeForm={closeForm}
+                        selectedActivity={selectedActivity}
+                        createOrEdit={createOrEdit}
+                        submitting={submitting}
+                    />}
             </Grid.Column>
         </Grid>
     )
