@@ -1,103 +1,31 @@
-import React, { Fragment, useEffect, useState } from 'react';
-import { Container, Header, List } from 'semantic-ui-react';
-import { Activity } from '../models/activity';
+import React, {useEffect } from 'react';
+import {Container} from 'semantic-ui-react';
 import NavBar from './NavBar';
 import ActivityDashboard from '../../features/activities/dashboard/ActivityDashboard';
-import { v4 as uuid } from 'uuid'
-import agent from '../api/agent';
 import LoadingComponent from './LoadingComponents';
-import { act } from 'react-dom/test-utils';
+import { useStore } from '../stores/store';
+import { observer } from 'mobx-react-lite';
 
 function App() {
 
-  const [activities, setActvities] = useState<Activity[]>([]);
-  const [selectedActivity, setSelectedActvity] = useState<Activity | undefined>(undefined);
-  const [editMode, setEditMode] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [submitting, setSubmitting] = useState<boolean>(false);
-
+  const {activityStore} = useStore();
 
   useEffect(() => {
-    agent.Activities.list().then(response => {
-      let activities: Activity[] = [];
-      response.forEach(activity => {
-        activity.date = activity.date.split('T')[0];
-        activities.push(activity);
-      })
-      setActvities(activities);
-      setLoading(false);
-    });
-  }, []); //array of dependencies. Zmiany których komponentów powodują wywołanie funkcji wewnątrz.
+    activityStore.loadActivities();
+  }, [activityStore]); //array of dependencies. Zmiany których komponentów powodują wywołanie funkcji wewnątrz.
 
-  function handleSelectActivity(id: string) {
-    setSelectedActvity(activities.find(x => x.id === id))
-  }
-
-  function handleCancelSelectActivity() {
-    setSelectedActvity(undefined)
-  }
-
-  function handleFormOpen(id?: string) {
-    id ? handleSelectActivity(id) : handleCancelSelectActivity();
-    setEditMode(true);
-  }
-
-  function handleFormClose() {
-    setEditMode(false);
-  }
-
-  function handleCreateOrEditActivity(activity: Activity) {
-    setSubmitting(true);
-    if (activity.id) {
-      agent.Activities.update(activity).then(() => {
-        setActvities([...activities.filter(x => x.id !== activity.id), activity])
-        setSelectedActvity(activity);
-        setEditMode(false);
-        setSubmitting(false);
-      })
-    }
-    else {
-      activity.id = uuid();
-      agent.Activities.create(activity).then(() => {
-        setActvities([...activities, activity]);
-        setSelectedActvity(activity);
-        setEditMode(false);
-        setSubmitting(false);
-      })
-    }
-  }
-
-  function handleDeleteActivity(id: string) {
-    setSubmitting(true);
-    agent.Activities.delete(id).then(() =>{
-      setActvities([...activities.filter(x => x.id !== id)])
-      setSubmitting(false);
-    })
-  }
-
-  if (loading) return <LoadingComponent content="Loading app..." />
+  if (activityStore.loadingInitial) return <LoadingComponent content="Loading app..." />
 
   return (
     <>
-      <NavBar openForm={handleFormOpen} />
+      <NavBar/>
 
       <Container style={{ marginTop: '7em' }}>
-        <ActivityDashboard
-          activities={activities}
-          selectedActivity={selectedActivity}
-          selectActivity={handleSelectActivity}
-          cancelSelectActivity={handleCancelSelectActivity}
-          editMode={editMode}
-          openForm={handleFormOpen}
-          closeForm={handleFormClose}
-          createOrEdit={handleCreateOrEditActivity}
-          deleteActivity={handleDeleteActivity}
-          submitting={submitting}
-        />
-      </Container>
 
+        <ActivityDashboard />
+      </Container>
     </>
   );
 }
 
-export default App;
+export default observer(App);
